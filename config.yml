@@ -1,0 +1,24 @@
+##########################################
+#  DATABASE POOL.  One for now
+#  We will want an array of these things
+#  in today's technology, the connection
+#  pooling is done in the connection service
+#  itself
+##########################################
+database:
+  dialect: mysql
+  port: 3306
+  #host:  159.89.128.223
+  host:  localhost
+  #host:  scaha.com
+  dbname: scaha
+  sslMode: disable
+  user: root
+  #  password: cat9tail
+  password: shiloh24
+  #poolsize: 5
+  #heartbeatsec: 5
+  #busysleepms: 10
+  #busyretrycount: 10
+  isEnabled: true
+  #dsnParms: parseTime=true
