@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
+	log "github.com/sirupsen/logrus"
 	m "scaha_micro_member/model"
 )
 
@@ -27,10 +28,44 @@ func (d DAO) FindPerson(id int) (*m.Person, error) {
 //
 // Here are some simple DAO routines that will
 // Lets find a person
+func (d DAO) FindPersonByProfile(profile m.Profile) (*m.Person, error) {
+	var person = m.Person{}
+	err := d.DB.Debug().Preload("Profile").Where("id_profile = ?", profile.ID).First(&person).Error
+
+	log.Debug(err)
+
+	return &person, err
+}
+
+//
+// Here are some simple DAO routines that will
+// Lets find a profile and everone underneath it
+func (d DAO) FindProfile(usercode string, pwd string) (*m.Profile, error) {
+	var profile = m.Profile{}
+	err := d.DB.Debug().Where("user_code = ? AND pwd = ?", usercode, pwd).First(&profile).Error
+	return &profile, err
+}
+//
+// Here are some simple DAO routines that will
+// Lets find a person
+// We want to control exactly how these structures get loaded because of the recursive nature of this.
+//
 func (d DAO) FindFamily(id int) (*m.Family, error) {
 	var family = m.Family{}
 	err := d.DB.Debug().
 		Where("id = ?", id).
+		Preload("Person").
+		Preload("Person.Profile").
+		Preload("FamilyMembers").
+		Preload("FamilyMembers.Person").
+		First(&family).Error
+	return &family, err
+}
+
+func (d DAO) FindFamilyByPerson(person m.Person) (*m.Family, error) {
+	var family = m.Family{}
+	err := d.DB.Debug().
+		Where("id_person = ?", person.ID).
 		Preload("Person").
 		Preload("Person.Profile").
 		Preload("FamilyMembers").

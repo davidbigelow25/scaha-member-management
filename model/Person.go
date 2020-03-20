@@ -13,11 +13,20 @@ type Person struct {
 	FirstName  string    `gorm:"size:45;not null;`
 	LastName  string     `gorm:"size:45;not null;`
 	Email string    	 `gorm:"size:45;not null;`
-	Phone  string    	 `gorm:"size:14;not null;"`
+	Phone  string    	 `gorm:"size:14"`
+	Adress string 		 `gorm:"size:75"`
+	City string 		 `gorm:"size:45"`
+	State string 		 `gorm:"size:2"`
+	Zipcode int
+	Country string  	 `gorm:"size:45"`
+	Gender string    	 `gorm:"size:1"`
+	Dob time.Time
+	Citizenship string 	  `gorm:"size:45"`
+	BirthCertificate BitBool
 	IdProfile int
 	Profile Profile		 `gorm:"foreignkey:IdProfile"`
-
-	//`gorm:"foreignkey:IdProfile"` // use UserRefer as foreign key
+	IdFamily int
+	Family *Family        `gorm:"foreignkey:IdProfile"`
 }
 //
 // Hey, lets be smart and filter out all the garbaded that can come it

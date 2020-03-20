@@ -41,6 +41,26 @@ func getPerson(dao repo.DAO) func(echo.Context) error {
 	}
 }
 
+func getProfile(dao repo.DAO) func(echo.Context) error {
+	return func(c echo.Context) error {
+		usercode := c.Param("usercode")
+		pwd := c.Param("pwd")
+		profile,err := dao.FindProfile(usercode, pwd)
+		if err != nil {
+			return c.JSON(http.StatusNotFound,"Cannot find Profile")
+		}
+		person,err2 := dao.FindPersonByProfile(*profile)
+		if err2 != nil {
+			return c.JSON(http.StatusNotFound,"Cannot find Person For profile")
+		}
+		family,err3 := dao.FindFamilyByPerson(*person)
+		if err3 != nil {
+			return c.JSON(http.StatusNotFound,"Cannot find Family for Profile")
+		}
+		return c.JSON(http.StatusOK, family)
+	}
+}
+
 
 func getFamily(dao repo.DAO) func(echo.Context) error {
 	return func(c echo.Context) error {
@@ -114,6 +134,7 @@ func handleRequest(dbgorm *gorm.DB) {
 	e.GET("/person/:id", getPerson(db))
 	e.GET("/family/:id", getFamily(db))
 	e.GET("/familymember/family/:id", getFamilyMemberByFamily(db))
+	e.GET("/profile/:usercode/:pwd", getProfile(db))
 //	e.POST("/person/:id", newPerson(db)
 //	e.PUT("/user/:name/:email", updatePerson(db))
 //	e.DELETE("/person/:id", deletePerson(db))
