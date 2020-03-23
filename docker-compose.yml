@@ -1,0 +1,12 @@
+version: '2'
+services:
+  scaha-micro-member:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - 4000
+    networks:
+      - network1
+networks:
+  network1:

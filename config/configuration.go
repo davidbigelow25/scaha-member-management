@@ -1,7 +1,6 @@
 package config
 
 import (
-	"blazer/utils"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -84,11 +83,7 @@ func ReloadConfiguration() {
 	//
 	// Lets fire of reloading notice
 	//
-	utils.Info.Printf("Reload Configurations:Triggering reloads")
-	utils.Info.Printf("Reload Configurations:Triggering STATS reloads")
 	Properties.System.ReloadConfig <- 1
-	utils.Info.Printf("Reload Configurations:Triggering CHANNELS reloads")
-	utils.Info.Printf("Reload Configurations:Triggering DB reloads")
 	Properties.Db.ReloadConfig <- 1
 }
 

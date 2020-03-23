@@ -28,3 +28,5 @@ func (b *BitBool) Scan(src interface{}) error {
 	*b = v[0] == 1
 	return nil
 }
+
+type Roles []Role

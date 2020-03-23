@@ -3,16 +3,15 @@ package main
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/labstack/echo"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
-	"strconv"
-
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	log "github.com/sirupsen/logrus"
 	conf "scaha_micro_member/config"
 	m "scaha_micro_member/model"
 	repo "scaha_micro_member/repository"
+	"strconv"
 )
 
 
@@ -61,6 +60,18 @@ func getProfile(dao repo.DAO) func(echo.Context) error {
 	}
 }
 
+func getProfileAndRoles(dao repo.DAO) func(echo.Context) error {
+	return func(c echo.Context) error {
+		usercode := c.Param("usercode")
+		pwd := c.Param("pwd")
+		profile,err := dao.FindProfile(usercode, pwd)
+		if err != nil {
+			return c.JSON(http.StatusNotFound,"Cannot find Profile")
+		}
+		profile.Person.Profile = nil
+		return c.JSON(http.StatusOK, profile)
+	}
+}
 
 func getFamily(dao repo.DAO) func(echo.Context) error {
 	return func(c echo.Context) error {
@@ -135,6 +146,7 @@ func handleRequest(dbgorm *gorm.DB) {
 	e.GET("/family/:id", getFamily(db))
 	e.GET("/familymember/family/:id", getFamilyMemberByFamily(db))
 	e.GET("/profile/:usercode/:pwd", getProfile(db))
+	e.GET("/login/:usercode/:pwd", getProfileAndRoles(db))
 //	e.POST("/person/:id", newPerson(db)
 //	e.PUT("/user/:name/:email", updatePerson(db))
 //	e.DELETE("/person/:id", deletePerson(db))
@@ -148,7 +160,7 @@ func initLogging() {
 	// Can be any io.Writer, see below for File example
 	log.SetOutput(os.Stdout)
 	// Only log the info severity or above.
-	log.SetLevel(log.InfoLevel)
+	log.SetLevel(log.TraceLevel)
 	log.WithFields(log.Fields{
 		"prefix":      "sensor",
 		"temperature": -4,
@@ -160,19 +172,18 @@ func main() {
 
 	initLogging()
 	conf.InitConfiguration("./")
-	connectionString := fmt.Sprintf("%s:%s@/%s?charset=utf8%sparseTime=true", conf.Properties.Db.User, conf.Properties.Db.Pass, conf.Properties.Db.Dbname,"&")
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8%sparseTime=true", conf.Properties.Db.User, conf.Properties.Db.Pass, conf.Properties.Db.Host,conf.Properties.Db.Port, conf.Properties.Db.Dbname,"&")
 	log.Info(connectionString)
 
 	db, err := gorm.Open("mysql", connectionString)
-	db.SingularTable(true)
-	db.LogMode(true)
-//	db.Model(m.Family).Related(m.FamilyMember)
-//	db.Model(&m.FamilyMember{}).AddForeignKey("id_family", "customers(customer_id)", "CASCADE", "CASCADE") // Foreign key need to define manually
-	defer db.Close()
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Error(err.Error())
 		log.Panic("failed to connect database")
 	}
+	log.Info("Connected to the database with the following String: %s", connectionString)
+	db.SingularTable(true)
+	defer db.Close()
+
 	handleRequest(db)
 }

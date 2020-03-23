@@ -42,9 +42,17 @@ func (d DAO) FindPersonByProfile(profile m.Profile) (*m.Person, error) {
 // Lets find a profile and everone underneath it
 func (d DAO) FindProfile(usercode string, pwd string) (*m.Profile, error) {
 	var profile = m.Profile{}
-	err := d.DB.Debug().Where("user_code = ? AND pwd = ?", usercode, pwd).First(&profile).Error
+	err := d.DB.Debug().Where("user_code = ? AND pwd = ?", usercode, pwd).
+		Preload("Person").
+		Preload("Roles").
+		Preload("Roles.InheritedRoles").
+		Preload("Roles.InheritedRoles.InheritedRoles").
+		First(&profile).Error
+	r := profile.Roles
+	profile.Roles = *r.Flatten()
 	return &profile, err
 }
+
 //
 // Here are some simple DAO routines that will
 // Lets find a person
@@ -56,6 +64,7 @@ func (d DAO) FindFamily(id int) (*m.Family, error) {
 		Where("id = ?", id).
 		Preload("Person").
 		Preload("Person.Profile").
+		Preload("Person.Profile.Roles").
 		Preload("FamilyMembers").
 		Preload("FamilyMembers.Person").
 		First(&family).Error
@@ -67,12 +76,19 @@ func (d DAO) FindFamilyByPerson(person m.Person) (*m.Family, error) {
 	err := d.DB.Debug().
 		Where("id_person = ?", person.ID).
 		Preload("Person").
+		Preload("Person.UsaHockeys").
 		Preload("Person.Profile").
+		Preload("Person.Profile.Roles").
+		Preload("Person.Profile.Roles.InheritedRoles").
+		Preload("Person.Profile.Roles.InheritedRoles.InheritedRoles").
+		Preload("Person.Profile.Roles.InheritedRoles.InheritedRoles.InheritedRoles").
 		Preload("FamilyMembers").
 		Preload("FamilyMembers.Person").
-		Preload("FamilyMembers.Person.Profile").
+		Preload("FamilyMembers.Person.UsaHockeys").
 		First(&family).Error
-	return &family, err
+		r := family.Person.Profile.Roles
+		family.Person.Profile.Roles = *r.Flatten()
+		return &family, err
 }
 
 //

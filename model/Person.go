@@ -24,9 +24,11 @@ type Person struct {
 	Citizenship string 	  `gorm:"size:45"`
 	BirthCertificate BitBool
 	IdProfile int
-	Profile Profile		 `gorm:"foreignkey:IdProfile"`
+	Profile *Profile		 `gorm:"foreignkey:IdProfile;PRELOAD:false"`
 	IdFamily int
-	Family *Family        `gorm:"foreignkey:IdProfile"`
+	Family *Family        `gorm:"foreignkey:IdPerson"`
+	UsaHockeys []UsaHockey `gorm:"foreignkey:IdPerson"`
+
 }
 //
 // Hey, lets be smart and filter out all the garbaded that can come it
