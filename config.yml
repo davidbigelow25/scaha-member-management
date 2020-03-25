@@ -14,3 +14,7 @@ database:
   user: root
   password: shiloh24
   isEnabled: true
+
+external-ms:
+  isHTTPS: false
+  port: 4020

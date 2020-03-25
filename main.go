@@ -136,7 +136,14 @@ func handleRequest(dbgorm *gorm.DB) {
 	e.GET("/family/:id", getFamily(db))
 	e.GET("/familymember/family/:id", getFamilyMemberByFamily(db))
 	e.GET("/profile/:usercode/:pwd", getProfile(db))
-	e.Logger.Fatal(e.Start(":4000"))
+
+
+	if Properties.ExternalMS.IsHTTPS {
+		e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%d", Properties.ExternalMS.Port), "./server.crt","./server.key"))
+	} else {
+		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", Properties.ExternalMS.Port)))
+	}
+
 }
 
 func init() {
