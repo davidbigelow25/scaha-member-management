@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
-	m "scaha_micro_member/model"
+	m "scaha-entity-model"
 )
 
 type DAO struct {
