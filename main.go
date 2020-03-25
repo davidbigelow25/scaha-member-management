@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	m "github.com/davidbigelow25/scaha-entity-model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
-	m "scaha-entity-model"
 	"strconv"
 )
 
