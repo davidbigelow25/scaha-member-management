@@ -6,7 +6,9 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -123,6 +125,38 @@ func usersByPage(dbobj dbops) func(echo.Context) error {
 }
 */
 
+func asValidate (next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req, err := http.NewRequest("GET", "http://localhost:4040/validate", nil)
+		if err != nil {
+			return c.String(http.StatusInternalServerError,"Cannot Authentidate")
+		}
+
+		//
+		// lets fish out the jwt token
+		jwt, err := c.Cookie("jwt")
+		if err != nil {
+			return c.String(http.StatusInternalServerError,"Cannot Find Authentication Token")
+		}
+		req.AddCookie(jwt)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return c.String(http.StatusInternalServerError,"Cannot Make the call to the authentication servcie")
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != 200 {
+			return c.String(http.StatusInternalServerError,"Cannot Make the call to the authentication servcie " + strconv.Itoa(resp.StatusCode))
+		}
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return c.String(http.StatusInternalServerError,"Cannot Read the Body " + strconv.Itoa(resp.StatusCode))
+		}
+		bodyString := string(bodyBytes)
+		log.Info(bodyString)
+		return next(c)
+	}
+}
 //
 // Lets handle these bad boys
 //
@@ -131,8 +165,14 @@ func handleRequest(dbgorm *gorm.DB) {
 	e := echo.New()
 	db := DAO{dbgorm}
 
+	//
+	// Restricted group
+	// This is an internal call made by all other microservices
+	//
+	e.Use(middleware.Recover())
+	e.Use(middleware.Logger())
 	e.GET("/person", allPersons(db))
-	e.GET("/person/:id", getPerson(db))
+	e.GET("/person/:id", getPerson(db), asValidate)
 	e.GET("/family/:id", getFamily(db))
 	e.GET("/familymember/family/:id", getFamilyMemberByFamily(db))
 	e.GET("/profile/:usercode/:pwd", getProfile(db))
