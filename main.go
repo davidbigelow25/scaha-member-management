@@ -8,30 +8,22 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
-	conf "scaha_micro_member/config"
-	m "scaha_micro_member/model"
-	repo "scaha_micro_member/repository"
+	m "scaha-entity-model"
 	"strconv"
 )
 
-
-
-func handlerFunc(msg string) func(echo.Context) error {
-	return func(c echo.Context) error {
-		return c.String(http.StatusOK, msg)
-	}
-}
-
-
-func allPersons(dao repo.DAO) func(echo.Context) error {
+func allPersons(dao DAO) func(echo.Context) error {
 	return func(c echo.Context) error {
 		var persons []m.Person
-		dao.FindAll(&persons)
+		err := dao.FindAll(&persons)
+		if err != nil {
+			log.Error(err.Error())
+		}
 		return c.JSON(http.StatusOK, persons)
 	}
 }
 
-func getPerson(dao repo.DAO) func(echo.Context) error {
+func getPerson(dao DAO) func(echo.Context) error {
 	return func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
 		log.Debug(id)
@@ -40,7 +32,7 @@ func getPerson(dao repo.DAO) func(echo.Context) error {
 	}
 }
 
-func getProfile(dao repo.DAO) func(echo.Context) error {
+func getProfile(dao DAO) func(echo.Context) error {
 	return func(c echo.Context) error {
 		usercode := c.Param("usercode")
 		pwd := c.Param("pwd")
@@ -60,7 +52,7 @@ func getProfile(dao repo.DAO) func(echo.Context) error {
 	}
 }
 
-func getProfileAndRoles(dao repo.DAO) func(echo.Context) error {
+func getProfileAndRoles(dao DAO) func(echo.Context) error {
 	return func(c echo.Context) error {
 		usercode := c.Param("usercode")
 		pwd := c.Param("pwd")
@@ -73,7 +65,7 @@ func getProfileAndRoles(dao repo.DAO) func(echo.Context) error {
 	}
 }
 
-func getFamily(dao repo.DAO) func(echo.Context) error {
+func getFamily(dao DAO) func(echo.Context) error {
 	return func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
 		log.Debug(id)
@@ -82,7 +74,7 @@ func getFamily(dao repo.DAO) func(echo.Context) error {
 	}
 }
 
-func getFamilyMemberByFamily(dao repo.DAO) func(echo.Context) error {
+func getFamilyMemberByFamily(dao DAO) func(echo.Context) error {
 	return func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
 		log.Debug(id)
@@ -131,59 +123,44 @@ func usersByPage(dbobj dbops) func(echo.Context) error {
 }
 */
 
-
-
 //
 // Lets handle these bad boys
 //
 func handleRequest(dbgorm *gorm.DB) {
 
 	e := echo.New()
-	db := repo.DAO{dbgorm}
+	db := DAO{dbgorm}
 
 	e.GET("/person", allPersons(db))
 	e.GET("/person/:id", getPerson(db))
 	e.GET("/family/:id", getFamily(db))
 	e.GET("/familymember/family/:id", getFamilyMemberByFamily(db))
 	e.GET("/profile/:usercode/:pwd", getProfile(db))
-	e.GET("/login/:usercode/:pwd", getProfileAndRoles(db))
-//	e.POST("/person/:id", newPerson(db)
-//	e.PUT("/user/:name/:email", updatePerson(db))
-//	e.DELETE("/person/:id", deletePerson(db))
 	e.Logger.Fatal(e.Start(":4000"))
 }
 
-func initLogging() {
-	// Log as JSON instead of the default ASCII formatter.
+func init() {
+
 	log.SetFormatter(&log.JSONFormatter{})
-	// Output to stdout instead of the default stderr
-	// Can be any io.Writer, see below for File example
 	log.SetOutput(os.Stdout)
-	// Only log the info severity or above.
 	log.SetLevel(log.TraceLevel)
-	log.WithFields(log.Fields{
-		"prefix":      "sensor",
-		"temperature": -4,
-	}).Info("Temperature changes")
+	InitConfiguration("./")
+
 }
 
 func main() {
 
+	// Lets hook up the database and launch the microservice
 
-	initLogging()
-	conf.InitConfiguration("./")
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8%sparseTime=true", conf.Properties.Db.User, conf.Properties.Db.Pass, conf.Properties.Db.Host,conf.Properties.Db.Port, conf.Properties.Db.Dbname,"&")
-	log.Info(connectionString)
-
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8%sparseTime=true", Properties.Db.User, Properties.Db.Pass, Properties.Db.Host, Properties.Db.Port, Properties.Db.Dbname,"&")
 	db, err := gorm.Open("mysql", connectionString)
-
-	if err != nil {
+	if err != nil || db == nil {
 		log.Error(err.Error())
 		log.Panic("failed to connect database")
+	} else {
+		log.Info("Connected to the database with the following String: %s", connectionString)
+		db.SingularTable(true)
+		defer db.Close()
+		handleRequest(db)
 	}
-	log.Info("Connected to the database with the following String: %s", connectionString)
-	db.SingularTable(true)
-	defer db.Close()
-
-	handleRequest(db)
 }

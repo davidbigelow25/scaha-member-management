@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"github.com/pkg/errors"
@@ -24,7 +24,7 @@ type SystemConfig struct {
   Pretty Straight Foward
 */
 type DatabaseConfig struct {
-	Dialect      string   `mapstructure: dialect`       // The dialect we need to be talking in for db information
+	Dialect      string   `mapstructure:"dialect"`       // The dialect we need to be talking in for db information
 	Host         string   `mapstructure:"host"`         // Host name
 	Port         int      `mapstructure:"port"`         // What port are we connecting on?
 	User         string   `mapstructure:"user"`         // user
@@ -54,15 +54,14 @@ type MicroServiceConfig struct {
   This is the master properties structure that will have all the things we need to drive the program
 
 */
-type config struct {
+type Config struct {
 	System        SystemConfig        `mapstructure:"system"`
 	Db            DatabaseConfig      `mapstructure:"database"`
 	CcaeMS		  MicroServiceConfig  `mapstructure:"ccaeMicroService"`
 	ReloadConfig  chan int
 }
 
-var Properties config // The real deal in holding the configuration(s)
-var Path string       // Holds the path of where its located
+var Properties Config // The real deal in holding the configuration(s)
 
 //
 // Lets init everything and do it as soon as this guy is referenced.
