@@ -16,5 +16,5 @@ database:
   isEnabled: true
 
 external-ms:
-  isHTTPS: false
+  isHTTPS: true
   port: 4020

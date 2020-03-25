@@ -139,7 +139,7 @@ func handleRequest(dbgorm *gorm.DB) {
 
 
 	if Properties.ExternalMS.IsHTTPS {
-		e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%d", Properties.ExternalMS.Port), "./server.crt","./server.key"))
+		e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%d", Properties.ExternalMS.Port), "./keys/server.crt","./keys/server.key"))
 	} else {
 		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", Properties.ExternalMS.Port)))
 	}
