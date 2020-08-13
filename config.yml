@@ -8,7 +8,7 @@
 database:
   dialect: mysql
   port: 3306
-  host:  192.168.0.15
+  host:  localhost
   dbname: scaha
   sslMode: disable
   user: root
@@ -16,5 +16,10 @@ database:
   isEnabled: true
 
 external-ms:
-  isHTTPS: true
-  port: 4020
+  isHTTPS: false
+  port: 9080
+
+
+
+
+
