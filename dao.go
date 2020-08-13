@@ -28,11 +28,10 @@ func (d DAO) FindActivePublishedNewsItems(news *[]m.NewsItem) error {
 //-------------------------------------------
 // Update A Live game for the
 //-------------------------------------------
-func (d DAO) UpdateLiveGame(idp uint, changeMap map[string]interface{}) error {
+func (d DAO) UpdateLiveGame(idp uint, changeMap map[string]interface{}) int {
 	lg := m.Livegame{ID:idp}
-
-	d.DB.Model(&lg).Updates(changeMap)
-	return nil
+	db := d.DB.Model(&lg).Assign(&lg).Updates(changeMap).First(&lg)
+	return int(db.RowsAffected)
 }
 
 //-------------------------------------------
@@ -43,6 +42,18 @@ func (d DAO) UpsertMia(idlg uint, idr uint, active bool)  *m.Mia {
 	d.DB.Assign(mymia).FirstOrCreate(&mymia)
 	return &mymia
 }
+
+func (d DAO) CreateScoring(scoring *m.Scoring)  *m.Scoring {
+	d.DB.Create(scoring).Assign(scoring)
+	return scoring
+}
+
+func (d DAO) UpdateScoring(scoring *m.Scoring, isactive bool)  *m.Scoring {
+	scoring.IsActive = &isactive
+	d.DB.Save(scoring).Assign(scoring)
+	return scoring
+}
+
 
 //-------------------------------------------
 // Venue Related Pulls

@@ -162,8 +162,8 @@ func putLiveGame(dao DAO)  func(echo.Context) error {
 
 		id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 		log.Printf("Here is the live game (id:%d): %+v\n",id,changeList)
-		dao.UpdateLiveGame(uint(id),changeList)
-		return c.JSON(http.StatusOK, id)
+		lg := dao.UpdateLiveGame(uint(id),changeList)
+		return c.JSON(http.StatusOK, lg)
 	}
 }
 
@@ -177,6 +177,44 @@ func upsertMiaByLiveGameAndRoster(dao DAO)  func(echo.Context)error {
 		return c.JSON(http.StatusOK, myMia)
 	}
 }
+
+func insertScore (dao DAO)  func(echo.Context)error {
+	return func(c echo.Context) error {
+
+		idlg, _ := strconv.ParseUint(c.Param("idlivegame"), 10, 64)
+		idt, _ := strconv.ParseUint(c.Param("idteam"), 10, 64)
+		heshootshescores := m.Scoring{IdLiveGame: uint(idlg), IdTeam: uint(idt)}
+		if err := c.Bind(&heshootshescores); err != nil {
+			return err
+		}
+
+		myScore := dao.CreateScoring(&heshootshescores)
+		return c.JSON(http.StatusOK, myScore)
+	}
+}
+
+func updateScore(dao DAO, active bool)  func(echo.Context)error {
+	return func(c echo.Context) error {
+		idlg, _ := strconv.ParseUint(c.Param("idlivegame"), 10, 64)
+		idt, _ := strconv.ParseUint(c.Param("idteam"), 10, 64)
+		ids, _ := strconv.ParseUint(c.Param("idscore"), 10, 64)
+		heshootshescores := m.Scoring{IdLiveGame: uint(idlg), IdTeam: uint(idt), ID: uint(ids)}
+		if err := c.Bind(&heshootshescores); err != nil {
+			return err
+		}
+		return c.JSON(http.StatusOK, dao.UpdateScoring(&heshootshescores,active))
+	}
+}
+
+func deleteScore(dao DAO)  func(echo.Context)error {
+	return func(c echo.Context) error {
+		idlg, _ := strconv.ParseUint(c.Param("idlivegame"), 10, 64)
+		idr, _ := strconv.ParseUint(c.Param("idroster"), 10, 64)
+		myMia := dao.UpsertMia(uint(idlg), uint(idr),true)
+		return c.JSON(http.StatusOK, myMia)
+	}
+}
+
 // The real key is LiveGame and Roster
 // We simply kick back what the new record looks like
 func deleteMiaByLiveGameAndRoster(dao DAO)  func(echo.Context)error {
@@ -279,6 +317,7 @@ func handleRequest(dbgorm *gorm.DB) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 
+	// All the general pulls (non volitale)
 	e.GET("/person", allPersons(db))
 	e.GET("/venue", allVenues(db))
 	e.GET("/news", allActivePublishedNewsItems(db))
@@ -289,9 +328,25 @@ func handleRequest(dbgorm *gorm.DB) {
 	e.GET("/livegame/byvenue/:venuetag", getAllLiveGamesByVenueandDate(db))
 	e.GET("/familymember/family/:id", getFamilyMemberByFamily(db))
 	e.GET("/profile/:usercode/:pwd", getProfile(db))
+
+	//
+	// All the update sections
+	//
+
+	// Live Game.  Here we do a single level update (we do not worry about relationships and nested updates
+	// we are handling all the using the path of the user and inserting keys in the path itself
 	e.PUT("/livegame/:id",putLiveGame(db))
+
+	// MIA work, since the primary key is not going to be usefull and is not the ID here
+	// we will do a basic upsert.  There is no body here to worry about.
+	// a delete simply deactivates the data with
 	e.PUT("/livegame/:idlivegame/roster/:idroster/mia",upsertMiaByLiveGameAndRoster(db))
 	e.DELETE("/livegame/:idlivegame/roster/:idroster/mia",deleteMiaByLiveGameAndRoster(db))
+
+	// Scoring Section  - This is how we do it when we have a key of sorts
+	e.POST("/livegame/:idlivegame/team/:idteam/scoring",insertScore(db))  // Create a scoring situation
+	e.PUT("/livegame/:idlivegame/team/:idteam/scoring/:idscore",updateScore(db,true)) // Update change something about a score for the given team
+	e.DELETE("/livegame/:idlivegame/team/:idteam/scoring/:idscore",updateScore(db, false)) // deactivate something about a score for the given team
 
 	if Properties.ExternalMS.IsHTTPS {
 		e.Logger.Fatal(e.StartTLS(fmt.Sprintf(":%d", Properties.ExternalMS.Port), "./keys/server.crt","./keys/server.key"))
