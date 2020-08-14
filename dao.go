@@ -43,16 +43,22 @@ func (d DAO) UpsertMia(idlg uint, idr uint, active bool)  *m.Mia {
 	return &mymia
 }
 
-func (d DAO) CreateScoring(scoring *m.Scoring)  *m.Scoring {
+func (d DAO) CreateScoring(scoring *m.Scoring) {
 	d.DB.Create(scoring).Assign(scoring)
-	return scoring
 }
-
-func (d DAO) UpdateScoring(scoring *m.Scoring, isactive bool)  *m.Scoring {
+func (d DAO) UpdateScoring(scoring *m.Scoring, isactive bool)  {
 	scoring.IsActive = &isactive
 	d.DB.Save(scoring).Assign(scoring)
-	return scoring
 }
+
+func (d DAO) CreatePenalty(p *m.Penalty) {
+	d.DB.Create(p).Assign(p)
+}
+func (d DAO) UpdatePenalty(p *m.Penalty, isactive bool)  {
+	p.IsActive = &isactive
+	d.DB.Save(p).Assign(p)
+}
+
 
 
 //-------------------------------------------
