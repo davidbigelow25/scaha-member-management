@@ -54,11 +54,20 @@ func (d DAO) UpdateScoring(scoring *m.Scoring, isactive bool)  {
 func (d DAO) CreatePenalty(p *m.Penalty) {
 	d.DB.Create(p).Assign(p)
 }
+
 func (d DAO) UpdatePenalty(p *m.Penalty, isactive bool)  {
 	p.IsActive = &isactive
 	d.DB.Save(p).Assign(p)
 }
 
+func (d DAO) CreateSog(s *m.Sog) {
+	d.DB.Create(s).Assign(s)
+}
+
+func (d DAO) UpdateSog(s *m.Sog, isactive bool)  {
+	s.IsActive = &isactive
+	d.DB.Save(s).Assign(s)
+}
 
 
 //-------------------------------------------
@@ -81,7 +90,7 @@ func (d DAO) FindAllLiveGamesByVenueandDate(venuetag string, date string) (*[]m.
 	var livegame = []m.Livegame{}
 	// We will hardcode the date for now to gernerate a small list of games for the given venue
 	//
-	err := d.DB.Where("venuetag = ? AND actdate between '2020-01-10' AND '2020-01-20'", venuetag).
+	err := d.DB.Where("venuetag = ? AND actdate between '2020-03-10' AND '2020-03-30'", venuetag).
 		Preload("HomeTeam").
 		Preload("AwayTeam").
 		Preload("Schedule").

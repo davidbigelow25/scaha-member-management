@@ -11,8 +11,8 @@ func setRoutes(e *echo.Echo, db *DAO) {
 	e.GET("/person/:id", getPerson(*db), asValidate)
 	e.GET("/family/:id", getFamily(*db))
 	e.GET("/livegame/:id", getLiveGame(*db))
-	e.GET("/livegame/byvenue/:venuetag", getAllLiveGamesByVenueandDate(*db))
-	e.GET("/familymember/family/:id", getFamilyMemberByFamily(*db))
+	e.GET("/venue/:venuetag/livegame", getAllLiveGamesByVenueandDate(*db))
+	e.GET("/family/:id/familymember", getFamilyMemberByFamily(*db))
 	e.GET("/profile/:usercode/:pwd", getProfile(*db))
 
 	//
@@ -45,9 +45,9 @@ func setRoutes(e *echo.Echo, db *DAO) {
 	e.DELETE("/livegame/:idlivegame/team/:idteam/person/:idperson/suspensions/:idsuspensions",updateScore(*db, false)) // deactivate something about a score for the given team
 
 	// Shots On Goal Section  Section  - This is how we do it when we have a key of sorts
-	e.POST("/livegame/:idlivegame/team/:idteam/roster/:idroster/sog",insertScore(*db))  // Create a suspension
-	e.PUT("/livegame/:idlivegame/team/:idteam/roster/:idroster/sog/:idsog",updateScore(*db,true)) // Update change something about a score for the given team
-	e.DELETE("/livegame/:idlivegame/team/:idteam/roster/:idroster/sog/:idsog",updateScore(*db, false)) // deactivate something about a score for the given team
+	e.POST("/livegame/:idlivegame/team/:idteam/roster/:idroster/sog",insertSog(*db))  // Create a suspension
+	e.PUT("/livegame/:idlivegame/team/:idteam/roster/:idroster/sog/:idsog",updateSog(*db,true)) // Update change something about a score for the given team
+	e.DELETE("/livegame/:idlivegame/team/:idteam/roster/:idroster/sog/:idsog",updateSog(*db, false)) // deactivate something about a score for the given team
 
 
 }

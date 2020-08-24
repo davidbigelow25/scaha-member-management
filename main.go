@@ -16,7 +16,8 @@ import (
 )
 
 
-
+var TRUE bool = true
+var FALSE bool = false
 //
 // News
 //
@@ -209,11 +210,10 @@ func updateScore(dao DAO, active bool)  func(echo.Context)error {
 
 func insertPenalty (dao DAO)  func(echo.Context)error {
 	return func(c echo.Context) error {
-
 		idlg, _ := strconv.ParseUint(c.Param("idlivegame"), 10, 64)
 		idt, _ := strconv.ParseUint(c.Param("idteam"), 10, 64)
 		idroster, _ := strconv.ParseUint(c.Param("idroster"), 10, 64)
-		pbox := m.Penalty{IdLiveGame: uint(idlg), IdTeam: uint(idt), IdRoster: uint(idroster)}
+		pbox := m.Penalty{IdLiveGame: uint(idlg), IdTeam: uint(idt), IdRoster: uint(idroster), IsActive: &TRUE}
 		if err := c.Bind(&pbox); err != nil {
 			return err
 		}
@@ -237,6 +237,34 @@ func updatePenalty(dao DAO, active bool)  func(echo.Context)error {
 	}
 }
 
+func insertSog (dao DAO)  func(echo.Context)error {
+	return func(c echo.Context) error {
+		idlg, _ := strconv.ParseUint(c.Param("idlivegame"), 10, 64)
+		idt, _ := strconv.ParseUint(c.Param("idteam"), 10, 64)
+		idroster, _ := strconv.ParseUint(c.Param("idroster"), 10, 64)
+		sog := m.Sog{IdLiveGame: uint(idlg), IdTeam: uint(idt), IdRoster: uint(idroster), IsActive: &TRUE}
+		if err := c.Bind(&sog); err != nil {
+			return err
+		}
+		dao.CreateSog(&sog)
+		return c.JSON(http.StatusOK, sog)
+	}
+}
+
+func updateSog(dao DAO, active bool)  func(echo.Context)error {
+	return func(c echo.Context) error {
+		idlg, _ := strconv.ParseUint(c.Param("idlivegame"), 10, 64)
+		idteam, _ := strconv.ParseUint(c.Param("idteam"), 10, 64)
+		idroster, _ := strconv.ParseUint(c.Param("idroster"), 10, 64)
+		idsog, _ := strconv.ParseUint(c.Param("idsog"), 10, 64)
+		sog := m.Sog{IdLiveGame: uint(idlg), IdTeam: uint(idteam), IdRoster: uint(idroster), ID: uint(idsog)}
+		if err := c.Bind(&sog); err != nil {
+			return err
+		}
+		dao.UpdateSog(&sog,active)
+		return c.JSON(http.StatusOK, sog)
+	}
+}
 
 // The real key is LiveGame and Roster
 // We simply kick back what the new record looks like
